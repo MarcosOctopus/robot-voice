@@ -1,0 +1,30 @@
+# Projeto ISOLADO do ecossistema Mirai.
+# Rede própria (robot-voice-net) + labels Traefik para roteamento.
+# NÃO toca nas redes/containers do ecossistema.
+
+services:
+  robot-voice:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: robot-voice
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    expose:
+      - "3000"
+    networks:
+      - robot-voice-net
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.robot-voice.rule=Host(`robot.miraitohope.com`)"
+      - "traefik.http.routers.robot-voice.entrypoints=websecure"
+      - "traefik.http.routers.robot-voice.tls.certresolver=letsencrypt"
+      - "traefik.http.services.robot-voice.loadbalancer.server.port=3000"
+
+networks:
+  robot-voice-net:
+    driver: bridge
+  traefik:
+    external: true
