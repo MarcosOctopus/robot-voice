@@ -248,7 +248,7 @@ function RobotVoiceInner({ debug }: { debug: boolean }) {
           }`}
         >
           {phase === "idle"
-            ? "🎙️ Iniciar conversa"
+            ? "Iniciar conversa"
             : phase === "connecting"
               ? "Conectando…"
               : "⏹️ Encerrar"}
