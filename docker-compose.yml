@@ -1,6 +1,12 @@
 # Projeto ISOLADO do ecossistema Mirai.
-# Rede própria (robot-voice-net) + labels Traefik para roteamento.
-# NÃO toca nas redes/containers do ecossistema.
+# Rede propria (robot-voice-net). Nao toca nas redes/containers do ecossistema.
+#
+# ADAPTADO (26/10/2026): a borda real e o NGINX do host, nao o Traefik.
+# O compose original exigia a rede externa "traefik" (que nao existe nesta
+# maquina) e publicava labels de roteamento. Agora:
+#   - o container so escuta em 127.0.0.1:3020 (nao expoe nada na internet);
+#   - o vhost do Nginx (robot.miraitohope.com) faz o proxy.
+# Isso segue a mesma regra dos outros stacks: so o Nginx abre 80/443.
 
 services:
   robot-voice:
@@ -11,20 +17,16 @@ services:
     restart: unless-stopped
     env_file:
       - .env.production
-    expose:
-      - "3000"
+    ports:
+      - "127.0.0.1:3020:3000"
     networks:
       - robot-voice-net
-      - traefik
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.robot-voice.rule=Host(`robot.miraitohope.com`)"
-      - "traefik.http.routers.robot-voice.entrypoints=websecure"
-      - "traefik.http.routers.robot-voice.tls.certresolver=letsencrypt"
-      - "traefik.http.services.robot-voice.loadbalancer.server.port=3000"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
   robot-voice-net:
     driver: bridge
-  traefik:
-    external: true

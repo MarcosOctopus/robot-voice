@@ -89,6 +89,12 @@ export async function deleteKB(docId: string) {
 export function checkAdmin(req: NextRequest): boolean {
   const pwd = process.env[["ADMIN", "PASSWORD"].join("_")];
   if (!pwd) return true; // sem senha configurada = liberado
-  const auth = req.headers.get("authorization")?.replace("Bearer ", "");
-  return auth === pwd;
+  // O header "Authorization" e REMOVIDO pelo Cloudflare quando o trafico passa
+  // por ele (comportamento do proxy). Por isso o Nginx repassa a senha em um
+  // header proprio ("x-rv-admin"), que o Cloudflare nao bloqueia. Aceitamos
+  // os dois: direto no container (nginx local / docker) e via Cloudflare.
+  const bruto =
+    req.headers.get("x-rv-admin") ??
+    req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+  return bruto === pwd;
 }

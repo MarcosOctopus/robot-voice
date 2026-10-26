@@ -15,7 +15,14 @@ export default function AdminPage() {
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
   const authHeaders = useCallback(
-    () => ({ Authorization: `Bearer ${password}` }),
+    // Mandamos a senha em DOIS headers: "Authorization" (padrao, funciona
+    // direto no container) e "x-rv-admin" (o Cloudflare REMOVE o
+    // "Authorization" no caminho da internet — sem isso o admin daria 401
+    // quando aberto pelo navegador de fora).
+    () => ({
+      Authorization: `Bearer ${password}`,
+      "x-rv-admin": password,
+    }),
     [password]
   );
 
